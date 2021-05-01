@@ -37,14 +37,19 @@ limitations under the License.
 ==============================================================================*/
 
 
+#define BUFFER_LENGTH 1024
 
 #include <Arduino.h>
 
 #include "tfmodel.h"
+#include "mpu.h"
 
+#include "board.h"
 
 
 TFLiteHandler tfliteHandler;
+MPUHandler mpuHandler;
+
 
 
 void setupSerial() {
@@ -58,11 +63,14 @@ void setup() {
 
   setupSerial();
 
-  if(!tfliteHandler.setup())
-    return;
+  // if(!tfliteHandler.setup())
+    // return;
+
+  mpuHandler.setup();
 
 }
 
 void loop() {
-  tfliteHandler.loop();
+  // tfliteHandler.loop();
+  mpuHandler.loop();
 }

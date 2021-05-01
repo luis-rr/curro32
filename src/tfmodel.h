@@ -38,7 +38,6 @@ class TFLiteHandler {
   const int kInferencesPerCycle = 20;
 
   public:
-\
     bool setup();
     bool loop();
 };
