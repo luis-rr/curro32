@@ -43,18 +43,19 @@ limitations under the License.
 
 #include "tfmodel.h"
 #include "mpu.h"
+#include "motor.h"
 
 #include "board.h"
 
 
 TFLiteHandler tfliteHandler;
 MPUHandler mpuHandler;
-
+MotorHandler motorHandler;
 
 
 void setupSerial() {
   Serial.begin(115200);
-  Serial.println("Hello!!");
+  Serial.println("setup serial");
 }
 
 
@@ -66,11 +67,15 @@ void setup() {
   // if(!tfliteHandler.setup())
     // return;
 
-  mpuHandler.setup();
+  // mpuHandler.setup();
 
+  if(!motorHandler.setup())
+    return;
 }
 
 void loop() {
   // tfliteHandler.loop();
-  mpuHandler.loop();
+  // mpuHandler.loop();
+
+  motorHandler.loop();
 }

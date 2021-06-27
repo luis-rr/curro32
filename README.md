@@ -21,5 +21,4 @@ library with
 https://forum.arduino.cc/t/samd21-and-i2cdevlib/488628/2
 
 another conflict:
-
 https://github.com/jrowberg/i2cdevlib/issues/346
