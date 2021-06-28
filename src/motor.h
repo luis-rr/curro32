@@ -14,17 +14,17 @@ class Servo {
 
     // PWM wave period
     static const int PW_PERIOD_US = 2500;
-    static const int MIN_ANGLE = 0;
-    static const int MAX_ANGLE = 290;
+    
+    static constexpr float MIN_ANGLE = 0.0f;
+    static constexpr float MAX_ANGLE = 290.f;
+    static constexpr float MID_ANGLE = (MAX_ANGLE - MIN_ANGLE) * 0.5f;
+    
     static const int PW_WIDTH_MIN = 500;
     static const int PW_WIDTH_MAX = 2500;
     static const int MAX_RES_BITS = 16;
     static const int DUTY_MAX = (1 << MAX_RES_BITS) - 1;
 
     const float US_TO_S = 1000 * 1000;
-
-    Servo();
-    ~Servo();
 
      /**
      * @brief Associate this instance with a servomotor whose input is
@@ -38,39 +38,31 @@ class Servo {
      *                It is possible to use automatic channel setup with constant
      *                Servo::CHANNEL_NOT_ATTACHED.
      */
-    void attach(int pin, int channel);
+    Servo(int pin, int channel, bool flipped);
+    ~Servo();
 
-    void detach();
+    void write(float degrees) {
 
-    // Set the servo's target angle
-    void write(float degrees);
+      float target = degrees + MID_ANGLE;
 
-    // Get the servo's target angle
-    float read() const;
+      if (_flipped) {
+        target = MAX_ANGLE - target;
+      }
+
+      _writeTarget(target);      
+    }
 
   private:
 
-    static int _usToDuty(int us)    { return map(us, 0, PW_PERIOD_US, 0, DUTY_MAX); }
-    static int _dutyToUs(int duty)  { return map(duty, 0, DUTY_MAX, 0, PW_PERIOD_US); }
-    static float _usToAngle(int us)   { return map(us, PW_WIDTH_MIN, PW_WIDTH_MAX, MIN_ANGLE, MAX_ANGLE); }
-    static float _angleToUs(float angle){ return map(angle, MIN_ANGLE, MAX_ANGLE, PW_WIDTH_MIN, PW_WIDTH_MAX); }
+    void _writeTarget(float degrees);
 
-    int _pin;
-    int _channel;
+    const bool _flipped;
+    const int _pin;
+    const int _channel;
 };
 
-
-class MotorHandler {
-  void setupServos();
-
-  Servo* servos;
-  float angle = 150;
-  int dir = 1;
-
+class Body {
 public:
-  bool setup();
-  void loop();
-
 
   /*
 
@@ -79,7 +71,7 @@ public:
     --------------------------
     |    4,  9, frkn     2, 10, brkn  |
     |    5,  5, frsh    15,  6, brsh  |
-    |    18, 1, head    13,  2, ----  |
+    |    18, 1, neck    13,  2, ----  |
     |-----------                      |
     |           |                     |
     |   ESP32   |  IMU          USB-C |
@@ -92,19 +84,35 @@ public:
 
   */
 
-  const uint8_t JOINT_PINS[12] = {
-    // head
-    18, 
+  Body() {
+    Serial.println("body built");
+  }
 
-    // shoulders
-    5, 15, 14, 33,
+  Servo neck{18, 0, false};
+  
+  Servo frsh{5, 1, false};
+  Servo brsh{15, 2, false};
+  Servo blsh{14, 3, true};
+  Servo flsh{33, 4, true};
 
-    // knees
-    4, 2, 27, 19,
-  };
+  Servo frkn{4, 5, true};
+  Servo brkn{2, 6, true};
+  Servo blkn{27, 7, false};
+  Servo flkn{19, 8, false};
 
-  const uint8_t JOINT_COUNT = sizeof(JOINT_PINS) / sizeof(JOINT_PINS[0]);
+  const byte JOINT_COUNT = 9;
+};
 
+
+class MotorHandler {
+  float angle = 150;
+  int dir = 1;
+
+  Body* body;
+
+public:
+  bool setup();
+  void loop();
 };
 
 

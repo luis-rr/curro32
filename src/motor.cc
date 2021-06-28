@@ -1,83 +1,72 @@
 #include "motor.h"
 // #include "board.h"
 
-
-Servo::Servo() {
-}
-
-void Servo::attach(int pin, int channel) 
+Servo::Servo(int pin, int channel, bool flipped)
+: _flipped(flipped), _pin(pin), _channel(channel)
 {
-    _channel = channel;
-    _pin = pin;
     const long pwm_freq = US_TO_S / PW_PERIOD_US;
-    ledcSetup(_channel, pwm_freq, MAX_RES_BITS);
+
     ledcAttachPin(_pin, _channel);
+    ledcSetup(_channel, pwm_freq, MAX_RES_BITS);
 }
 
 Servo::~Servo() {
-    detach();
-}
-
-void Servo::detach() {
+    ledcWrite(_channel, 0);
     ledcDetachPin(_pin);
 }
 
-void Servo::write(float degrees) {
-    degrees = constrain(degrees, MIN_ANGLE, MAX_ANGLE);
+float mapFloat(float x, float in_min, float in_max, float out_min, float out_max) {
+  const auto clipped = constrain(x, in_min, in_max);
+  const auto norm = (clipped - in_min) / (in_max - in_min);
+  return norm * (out_max - out_min) + out_min;
+}
 
-    const auto pulseUs = constrain(_angleToUs(degrees), PW_WIDTH_MIN, PW_WIDTH_MAX);
-
-    const auto pulseWidthDuty = _usToDuty(pulseUs);
+void Servo::_writeTarget(float degrees) {
+    const float pulseUs = mapFloat(degrees, MIN_ANGLE, MAX_ANGLE, PW_WIDTH_MIN, PW_WIDTH_MAX);
+    const auto pulseWidthDuty = static_cast<uint32_t>(mapFloat(pulseUs, 0, PW_PERIOD_US, 0, DUTY_MAX));
 
     ledcWrite(_channel, pulseWidthDuty);
 }
 
-float Servo::read() const {
-  const int duty = ledcRead(_channel);
-  const auto pulseUs = _dutyToUs(duty);
-  return _usToAngle(pulseUs);
-}
-
-
-void MotorHandler::setupServos() {
-
-  Serial.println("setup servos");
-
-  this->servos = new Servo[JOINT_COUNT];
-
-  for (byte i = 0; i != JOINT_COUNT; ++i) {
-
-    const auto pin = JOINT_PINS[i];
-
-    Serial.print("setup servo ");
-    Serial.print(i);
-    Serial.print(" on pin ");
-    Serial.println(pin);
-
-    this->servos[i].attach(pin, i);
-    this->servos[i].write(150);
-  }
-  Serial.println();
-
-}
-
 bool MotorHandler::setup() {
-  setupServos();
+  this->body = new Body();
+
+  this->body->neck.write(0);
+
+  this->body->frsh.write(-30);
+  this->body->flsh.write(-30);
+
+  this->body->frkn.write(-45);
+  this->body->flkn.write(-45);
+
+  this->body->blsh.write(30);
+  this->body->brsh.write(30);
+
+  this->body->blkn.write(45);
+  this->body->brkn.write(45);
+
+  angle = 0;
+
   return true;
 }
 
 void MotorHandler::loop() {
 
+  this->angle += 0.0025 * dir;
 
-  this->angle += 0.0005 * dir;
-
-  if (this->angle >= 160 || this->angle <= 140) {
+  if (this->angle <= -60 || 60 <= this->angle) {
     this->dir *= -1;
   }
 
-  // Serial.print("servo write ");
-  // Serial.println(this->angle);
-  for (byte i = 0; i != JOINT_COUNT; ++i) {
-    this->servos[i].write(this->angle);
-  }
+  this->body->frsh.write(angle -30);
+  this->body->frkn.write(-angle -45);
+
+  this->body->flsh.write(angle -30);
+  this->body->flkn.write(-angle -45);
+
+  this->body->blsh.write(angle + 30);
+  this->body->blkn.write(-angle + 45);
+
+  this->body->brsh.write(angle + 30);
+  this->body->brkn.write(-angle + 45);
 }
