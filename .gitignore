@@ -5,6 +5,7 @@
 .vscode/launch.json
 .vscode/ipch
 .vscode/
+*.code-workspace
 
 # Extra libs
 lib/tfmicro
