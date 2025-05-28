@@ -8,7 +8,6 @@ https://www.survivingwithandroid.com/run-tensorflow-lite-esp32-platformio/
 https://github.com/atomic14/tensorflow-lite-esp32
 
 
-
 # TODO
 
 ## Switch MPU library to something maintained

@@ -1,4 +1,5 @@
 #include "tfmodel.h"
+#include <Arduino.h>
 
 
 bool TFLiteHandler::setup() {
@@ -55,11 +56,16 @@ bool TFLiteHandler::loop() {
   float position = static_cast<float>(inference_count) /
                   static_cast<float>(kInferencesPerCycle);
   float x = position * kXrange;
+  Serial.println("x");
+  Serial.println(x);
 
   // Quantize the input from floating-point to integer
   int8_t x_quantized = x / input->params.scale + input->params.zero_point;
+  Serial.println("x_quantized");
+  Serial.println(x_quantized);
   // Place the quantized input in the model's input tensor
   input->data.int8[0] = x_quantized;
+  Serial.println("set data");
 
   // Run inference, and report any error
   TfLiteStatus invoke_status = interpreter->Invoke();

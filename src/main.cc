@@ -74,8 +74,8 @@ void setup() {
 }
 
 void loop() {
-  // tfliteHandler.loop();
-  // mpuHandler.loop();
+  tfliteHandler.loop();
+  mpuHandler.loop();
 
   motorHandler.loop();
 }
